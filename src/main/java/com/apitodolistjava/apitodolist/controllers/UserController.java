@@ -9,8 +9,14 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
+
+@CrossOrigin(origins = "*")
+
 @RestController
 @RequestMapping("/users")
+
 public class UserController {
 
     @GetMapping
@@ -20,7 +26,25 @@ public class UserController {
 
     }
 
-    @GetMapping("/{idUser}/{emailUser}/{password}")
+    @GetMapping("/{id}")
+    public  ResponseEntity getUserId(@PathVariable UUID id){
+        var userExist = Database.userExistById(id);
+        if(!userExist){
+            return ResponseEntity.badRequest().body(new ResponseError("Usuário não encontrado!"));
+
+        }
+
+        var user = Database.getUserById(id);
+
+
+
+        return ResponseEntity.ok().body(user);
+
+
+
+    }
+
+    @GetMapping("/{emailUser}/{password}")
     public  ResponseEntity loginUser( @PathVariable String emailUser, @PathVariable String password){
         var checkUser = Database.userExistByEmail(emailUser);
         if(!checkUser){
@@ -52,7 +76,7 @@ public class UserController {
 
         Database.users.add(user);
 
-        return ResponseEntity.ok().body(user);
+        return ResponseEntity.ok().body("Usuário Criado!");
 
     }
 

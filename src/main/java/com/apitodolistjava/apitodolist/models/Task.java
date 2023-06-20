@@ -13,12 +13,12 @@ public class Task {
     private UUID id;
     private String description;
     private  String detail;
-    private boolean arquivar;
+    private boolean archived;
 
 
     public Task(CreateTask newTask){
         id = UUID.randomUUID();
-        arquivar = false;
+        archived = false;
         this.description = newTask.description();
         this.detail = newTask.detail();
     }

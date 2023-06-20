@@ -9,7 +9,7 @@ public record CreateUser(
                 @Email
         String emailUser,
         @NotBlank
-                @Length(min = 4, max = 8 )
+                @Length(min = 6, max = 8 )
         String password
 ) {
 }

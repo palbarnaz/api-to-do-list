@@ -1,20 +1,70 @@
 package com.apitodolistjava.apitodolist.controllers;
 
 import com.apitodolistjava.apitodolist.database.Database;
-import com.apitodolistjava.apitodolist.dtos.CreateTask;
-import com.apitodolistjava.apitodolist.dtos.EditTask;
-import com.apitodolistjava.apitodolist.dtos.ResponseError;
-import com.apitodolistjava.apitodolist.dtos.StatusTask;
+import com.apitodolistjava.apitodolist.dtos.*;
 import com.apitodolistjava.apitodolist.models.Task;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+@CrossOrigin(origins = "*")
 
 @RestController
 @RequestMapping("/tasks")
+
 public class TasksController {
+
+    @GetMapping("/{id}/filter/")
+    public ResponseEntity listTasks(@RequestParam(required = false) String description, @RequestParam(required = false) Boolean archived, @PathVariable UUID id){
+
+        var exist = Database.userExistById(id);
+        if(!exist){
+            ResponseEntity.badRequest().body(new ResponseError("Usuário não encontrado!"));
+        }
+
+        var tasks = Database.getUserById(id).getTasks();
+
+        if(tasks.size()>0){
+            if (description != null) {
+                tasks = tasks
+                        .stream()
+                        .filter(t -> t.getDescription() != null && t.getDescription().toLowerCase().contains((description)))
+                        .toList();
+            }
+
+            if (archived != null) {
+                tasks = tasks
+                        .stream()
+                        .filter(t -> archived == t.isArchived())
+                        .toList();
+            }
+
+            return ResponseEntity.ok().body(tasks.stream().map(TasksList::new).toList());
+
+
+        }
+
+        return  ResponseEntity.badRequest().body(new ResponseError("Nenhum recado existente para filtragem!"));
+
+
+    }
+
+    @GetMapping("/{idUser}")
+    public ResponseEntity getAllTasks(@PathVariable UUID idUser){
+
+       var exist = Database.userExistById(idUser);
+        if(!exist){
+            ResponseEntity.badRequest().body(new ResponseError("Usuário não encontrado!"));
+        }
+
+        var tasks = Database.getUserById(idUser).getTasks();
+
+        return  ResponseEntity.ok().body(tasks.stream().map(TasksList::new).toList());
+
+    }
 
 @PostMapping("/{idUser}")
     public ResponseEntity  createTask(@RequestBody @Valid CreateTask newTask, @PathVariable UUID idUser){
@@ -40,7 +90,7 @@ public class TasksController {
             user.setNewTask(newTask);
 
 
-        return ResponseEntity.ok().body(user);
+        return ResponseEntity.ok().body(user.getTasks());
 
 }
 
@@ -90,7 +140,7 @@ public  ResponseEntity editTask(@RequestBody @Valid EditTask task, @PathVariable
         if(t == taskEdit.get()){
             t.setDescription(task.description());
             t.setDetail(task.detail());
-            t.setArquivar((task.arquivar()));
+            t.setArchived((task.archived()));
         }
     }
 
@@ -101,8 +151,7 @@ public  ResponseEntity editTask(@RequestBody @Valid EditTask task, @PathVariable
 
 
     @PutMapping("/{idUser}/statusTask/{idTask}")
-    public  ResponseEntity editTaskStatus(@RequestBody @Valid StatusTask newStatus, @PathVariable UUID idUser, @PathVariable UUID idTask) {
-
+    public  ResponseEntity editTaskStatus(@RequestBody  StatusTask newStatus, @PathVariable UUID idUser, @PathVariable UUID idTask) {
         var checkUser = Database.userExistById(idUser);
         if(!checkUser){
             return ResponseEntity.badRequest().body(new ResponseError("Usuário não encontrado!"));
@@ -122,13 +171,14 @@ public  ResponseEntity editTask(@RequestBody @Valid EditTask task, @PathVariable
         for (Task t : user.getTasks()) {
             if (t == taskEdit.get()) {
 
-                t.setArquivar((newStatus.arquivar()));
+                t.setArchived((newStatus.archived()));
             }
 
 
         }
 
         return ResponseEntity.ok().body(user.getTasks());
+
 
 
     }

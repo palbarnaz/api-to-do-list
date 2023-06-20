@@ -14,6 +14,6 @@ public record EditTask(
        String detail,
 
 
-        boolean arquivar
+        boolean archived
         ) {
 }

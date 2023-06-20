@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotNull;
 
 public record StatusTask(
 
-        @NotNull
-      boolean arquivar
+
+      Boolean archived
 
 
 
