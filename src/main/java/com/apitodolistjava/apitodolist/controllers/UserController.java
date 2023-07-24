@@ -5,7 +5,9 @@ import com.apitodolistjava.apitodolist.dtos.CreateUser;
 import com.apitodolistjava.apitodolist.dtos.ResponseError;
 import com.apitodolistjava.apitodolist.dtos.UserList;
 import com.apitodolistjava.apitodolist.models.User;
+import com.apitodolistjava.apitodolist.repositories.UserRepository;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,45 +19,44 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/users")
 
-public class UserController {
 
+public class UserController {
+    @Autowired
+    private UserRepository repository;
     @GetMapping
     public ResponseEntity getAll(){
 
-        return  ResponseEntity.ok().body(Database.getUsers().stream().map((user) -> new UserList(user)).toList());
+        return  ResponseEntity.ok().body(repository.findAll().stream().map(UserList::new).toList());
 
     }
 
     @GetMapping("/{id}")
     public  ResponseEntity getUserId(@PathVariable UUID id){
-        var userExist = Database.userExistById(id);
-        if(!userExist){
+
+        var user = repository.findById(id);
+        if(user.isEmpty()){
             return ResponseEntity.badRequest().body(new ResponseError("Usuário não encontrado!"));
 
         }
 
-        var user = Database.getUserById(id);
-
-
 
         return ResponseEntity.ok().body(user);
-
-
 
     }
 
     @GetMapping("/{emailUser}/{password}")
     public  ResponseEntity loginUser( @PathVariable String emailUser, @PathVariable String password){
-        var checkUser = Database.userExistByEmail(emailUser);
-        if(!checkUser){
+        var user = repository.findByEmailUser(emailUser);
+
+        if(user.isEmpty()){
             return ResponseEntity.badRequest().body(new ResponseError("Usuário não encontrado!"));
 
         }
 
-        var user = Database.getUserByEmail(emailUser);
 
-        if(user.getEmailUser().equals(emailUser) && user.getPassword().equals(password)){
-            return ResponseEntity.ok().body(user);
+        if(user.get().getEmailUser().equals(emailUser) && user.get().getPassword().equals(password)){
+            return ResponseEntity.ok().body(user.get());
+
         }else{
             return ResponseEntity.badRequest().body(new ResponseError("E-mail ou senha inválido! Tente Novamente."));
         }
@@ -63,18 +64,16 @@ public class UserController {
 
 
 
-
-
     @PostMapping
     public ResponseEntity createUser(@RequestBody @Valid CreateUser userDto){
+        var exist = repository.existsByEmailUser(userDto.emailUser());
 
-        if(Database.userExistByEmail(userDto.emailUser())) return ResponseEntity.badRequest().body(new ResponseError("Email já cadastrado!"));
+        if(exist) return ResponseEntity.badRequest().body(new ResponseError("Email já cadastrado!"));
 
 
         var user = new User(userDto);
+        repository.save(user);
 
-
-        Database.users.add(user);
 
         return ResponseEntity.ok().body("Usuário Criado!");
 
