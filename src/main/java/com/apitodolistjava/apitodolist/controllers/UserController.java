@@ -1,6 +1,4 @@
 package com.apitodolistjava.apitodolist.controllers;
-
-import com.apitodolistjava.apitodolist.database.Database;
 import com.apitodolistjava.apitodolist.dtos.CreateUser;
 import com.apitodolistjava.apitodolist.dtos.ResponseError;
 import com.apitodolistjava.apitodolist.dtos.UserList;

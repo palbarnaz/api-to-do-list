@@ -44,13 +44,4 @@ public class User {
 
 
 
-//    public void setNewTask(CreateTask task){
-//        tasks.add(new Task(task));
-//    };
-
-
-
-
-
-
 }

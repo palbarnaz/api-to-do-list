@@ -1,6 +1,4 @@
 package com.apitodolistjava.apitodolist.controllers;
-
-import com.apitodolistjava.apitodolist.database.Database;
 import com.apitodolistjava.apitodolist.dtos.*;
 import com.apitodolistjava.apitodolist.models.Task;
 import com.apitodolistjava.apitodolist.repositories.TaskRepository;
